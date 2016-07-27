@@ -5,19 +5,30 @@
 ## 先决条件
 用户需要提供接收POST请求的HTTP服务，以处理UCloud发送的POST请求，并将该服务的URL注册到UCloud的告警系统中。
 
-## Json Body Example
+## JSON Body Example
+  
+### 告警
     {
-          "SessionID": "12345678",
-          "Region": "BJ",
-          "ResourceType": "xx",
-          "ResourceId":"1024",
-          "Metricname": "sys.cpu.user",
-          "AlarmTime": "2016-07-27 00:00:00",
-          "RecoveryTime": "0",
-          "Content": "Warning message"
+        SessionID: "xxxxxxxxxxxxxxxxxxxxxxx",
+        Region: "cn-north-03",
+        ResourceType: "uhost",
+        ResourceId: "uhost-xxxx",
+        MetricName: "MemUsage",
+        AlarmTime: 1458733318,
+        RecoveryTime: 0
     }
-
-
+  
+### 恢复
+    {
+        SessionID: "xxxxxxxxxxxxxxxxxxxxxxx",
+        Region: "cn-north-03",
+        ResourceType: "uhost",
+        ResourceId: "uhost-xxxx",
+        MetricName: "MemUsage",
+        AlarmTime: 0,
+        RecoveryTime: 1458733318
+    }
+  
 **Field Explaination**
   
 
@@ -50,3 +61,12 @@
             <td>Content</td><td>Warning content</td>
       </tr>
 </table>
+
+## Response
+我们这边需要收到这样的response， 表明用户成功接收推送信息，否则会再重试2次：
+
+    {
+        SessionID: "xxxxxxxxxxxxxxxxxxxxxxx",
+        RetCode: 0
+    }
+
