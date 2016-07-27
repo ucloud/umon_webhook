@@ -1,0 +1,8 @@
+#mkmetric分析
+
+tsdb 使用mkmetric创建指标metric，其流程如下：
+1.tsdb中解析子命令mkmetric，并设置新命令：uid assign metrics $@
+2.执行java class net.opentsdb.tools.UidManager：
+	i.解析子命令assign
+	ii.依次获取设置的metric并执行getOrCreateId得到uid信息
+	iii.输出指标UID信息
