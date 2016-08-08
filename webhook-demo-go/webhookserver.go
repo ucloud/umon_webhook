@@ -1,29 +1,59 @@
 package main
 
 import (
-	"fmt"
+	"errors"
+	"flag"
 	"log"
-	"net/http"
+	"os"
+	"os/signal"
+	"restfulAPI"
+	"runtime"
+	"syscall"
+	"utils"
 )
 
-func handler(w http.ResponseWriter, r *http.Request) {
-	log.Printf("Receive request : %s %s\n", r.Method, r.URL.Path)
-	switch r.Method {
-	case "PUT":
-		fmt.Fprintf(w, "Receive %s request\n", r.Method)
-	case "GET":
-		fmt.Fprintf(w, "Receive %s request\n", r.Method)
-	case "POST":
-		fmt.Fprintf(w, "Receive %s request\n", r.Method)
-	default:
-		fmt.Fprintf(w, "Receive unsupport method %s request\n", r.Method)
-	}
+var (
+	ErrorBadConfig = errors.New("BadConfigFile")
+	config         = flag.String("c", "etc/conf.ini", "Config file")
+)
 
-	fmt.Fprintf(w, "Receive request : %s......", r.URL.Path[1:])
+type IServer interface {
+	Start() error
+	Shutdown()
+}
+
+func stopSignal(s IServer) {
+	signalCh := make(chan os.Signal, 1)
+	signal.Notify(signalCh,
+		syscall.SIGABRT,
+		syscall.SIGTERM,
+		syscall.SIGINT,
+		syscall.SIGKILL)
+
+	go func() {
+		<-signalCh
+		s.Shutdown()
+		os.Exit(0)
+	}()
 }
 
 func main() {
-	fmt.Println("\nHello webhook")
-	http.HandleFunc("/", handler)
-	http.ListenAndServe(":8080", nil)
+	log.Println("Welcome to ucloud monitor webhook demo ...")
+
+	flag.Parse()
+	cfg, err := utils.NewConfig(*config)
+	if err != nil {
+		log.Fatal(ErrorBadConfig.Error())
+	}
+
+	utils.SetGlobalConf(cfg)
+
+	cpuNum := runtime.NumCPU()
+	runtime.GOMAXPROCS(cpuNum)
+	log.Printf("Monitor webhook demo use %d process cores\n", cpuNum)
+
+	s := restfulAPI.NewApiServer(cfg)
+	stopSignal(s)
+
+	s.Start()
 }

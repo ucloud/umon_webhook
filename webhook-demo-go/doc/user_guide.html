@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>User Guide</title>
+    <link rel="stylesheet" type="text/css" href="/public/github.css">
+  </head>
+  <body>
+    <div class="container">
+      <div id="markup">
+        <article id="content" class="markdown-body">
+          <h1>User Guide</h1>
+<h2>WebHook 说明</h2>
+<p>创建webhook后您的系统可以收到UCloud告警信息。当有告警时，UCloud的系统会将告警信息以HTTP POST方式发送到指定URL，您可以对收到信息进行处理。</p>
+<h3>先决条件</h3>
+<p>用户需要提供接收POST请求的HTTP服务，以处理UCloud发送的POST请求，并将该服务的URL注册到UCloud的告警系统中。</p>
+<h3>JSON Body Example</h3>
+<h4>告警</h4>
+<div class="codehilite"><pre>{
+    SessionID: &quot;xxxxxxxxxxxxxxxxxxxxxxx&quot;,
+    Region: &quot;cn-north-03&quot;,
+    ResourceType: &quot;uhost&quot;,
+    ResourceId: &quot;uhost-xxxx&quot;,
+    MetricName: &quot;MemUsage&quot;,
+    AlarmTime: 1458733318,
+    RecoveryTime: 0
+}
+</pre></div>
+
+
+<h4>恢复</h4>
+<div class="codehilite"><pre>{
+    SessionID: &quot;xxxxxxxxxxxxxxxxxxxxxxx&quot;,
+    Region: &quot;cn-north-03&quot;,
+    ResourceType: &quot;uhost&quot;,
+    ResourceId: &quot;uhost-xxxx&quot;,
+    MetricName: &quot;MemUsage&quot;,
+    AlarmTime: 0,
+    RecoveryTime: 1458733318
+}
+</pre></div>
+
+
+<p><strong>Field Explaination</strong></p>
+<table>
+      <tr>
+            <td>Field</td><td>Explaination</td>
+      </tr>
+      <tr>
+            <td>SessionID</td><td>Session ID for this message</td>
+      </tr>
+      <tr>
+            <td>Region</td><td>Region Name</td>
+      </tr>
+      <tr>
+            <td>ResourceType</td><td>Resource Type</td>
+      </tr>
+      <tr>
+            <td>ResourceId</td><td>short id</td>
+      </tr>
+      <tr>
+            <td>MetricName</td><td>Metric Name for current warning</td>
+      </tr>
+      <tr>
+            <td>AlarmTime</td><td>Alarm time</td>
+      </tr>
+      <tr>
+            <td>RecoveryTime</td><td>Restory time</td>
+      </tr>
+      <tr>
+            <td>Content</td><td>Warning content</td>
+      </tr>
+</table>
+
+<h3>Response</h3>
+<p>我们这边需要收到这样的response， 表明用户成功接收推送信息，否则会再重试2次：</p>
+<div class="codehilite"><pre>{
+    SessionID: &quot;xxxxxxxxxxxxxxxxxxxxxxx&quot;,
+    RetCode: 0
+}
+</pre></div>
+
+
+<h2>WebHook Demo 说明</h2>
+<p>本Demo提供实现支持WebHook服务的一种方式，基于Golang实现，使用MySQL存储收到的报警数据，Demo仅供参考。</p>
+<h3>依赖</h3>
+<p>WebHook Demo依赖3个第三方包，编译前需要使用go get 命令安装到本地</p>
+<ol>
+<li>github.com/gorilla/mux</li>
+<li>github.com/google/uuid</li>
+<li>github.com/go-sql-driver/mysql</li>
+</ol>
+<h3>编译</h3>
+<ol>
+<li>在目录warn-webhook中创建名为src指向webhook-demo-go的软连接</li>
+<li>将目录warn-webhook添加到GOPATH；</li>
+<li>在目录warn-webhook中执行：*go build -a . *</li>
+</ol>
+<h3>执行</h3>
+<ol>
+<li>
+<p>初始化MySQL数据库及表，表Schema可参考如下：</p>
+<div class="codehilite"><pre>CREATE TABLE `warn_message` (
+`session_id` char(36) NOT NULL,
+`region` varchar(20) NOT NULL,
+`resource_type` varchar(45) NOT NULL,
+`resource_id` varchar(45) NOT NULL,
+`metric_name` varchar(50) NOT NULL,
+`alarm_time` int(11) DEFAULT NULL,
+`recovery_time` int(11) DEFAULT &#39;0&#39;,
+PRIMARY KEY (`session_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+</pre></div>
+
+
+</li>
+<li>
+<p>根据数据库表相关信息，修改webhook-demo-go/etc/conf.ini文件中相关内容</p>
+</li>
+<li>执行编译生成的可执行程序，默认加载etc/conf.ini文件，也可以指定其他位置配置文件</li>
+</ol>
+<h3>资源路径及接口</h3>
+<p>服务器启动时默认端口为80</p>
+<ol>
+<li>/ -&gt; User Guide</li>
+<li>/add -&gt; 添加报警信息，即实际WebHook调用接口</li>
+<li>/get -&gt; 获取当前已经添加的报警信息</li>
+</ol>
+<h3>客户端说明</h3>
+<p>仅测试添加报警信息，实际数据请以接口实际返回为准。</p>
+        </article>
+      </div>
+    </div>
+  </body>
+  <script type="text/x-omnimarkup-config">
+    window.App.Context = {
+      buffer_id: 161,
+      timestamp: '1470651238.98364',
+      revivable_key: 'RTpcV29ya1xVQ2xvdWRcTW9uaXRvclx3YXJuLXdlYmhvb2tcd2ViaG9vay1kZW1vLWdvXGRvY1xSRUFERU1FLm1k'
+    };
+    window.App.Options = {
+      ajax_polling_interval: 500,
+      mathjax_enabled: false
+    };
+  </script>
+  <script type="text/javascript" src="/public/jquery-2.1.3.min.js"></script>
+  <script type="text/javascript" src="/public/imagesloaded.pkgd.min.js"></script>
+  <script type="text/javascript" src="/public/app.js"></script>
+</html>
