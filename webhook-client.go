@@ -3,14 +3,16 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-
 	"time"
 
 	"github.com/google/uuid"
 )
+
+var PostUrl = flag.String("u", "http://localhost/add", "WebHook Url")
 
 // SessionID: "xxxxxxxxxxxxxxxxxxxxxxx",
 //         Region: "cn-north-03",
@@ -50,7 +52,7 @@ func HttpSend(url string, body []byte) bool {
 	return true
 }
 
-func SendWarnMessage() bool {
+func SendWarnMessage(url string) bool {
 	uid, _ := uuid.NewUUID()
 	wmsg := &WarnMessage{
 		SessionID:    uid,
@@ -71,13 +73,15 @@ func SendWarnMessage() bool {
 
 	fmt.Println(string(jmsg))
 
-	return HttpSend("http://localhost/add", jmsg)
+	return HttpSend(url, jmsg)
 }
 
 func main() {
+	flag.Parse()
+
 	for i := 0; i < 10; i++ {
 		time.Sleep(50)
 		fmt.Println("Post request for webhook: ", i)
-		SendWarnMessage()
+		SendWarnMessage(*PostUrl)
 	}
 }
