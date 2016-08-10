@@ -72,37 +72,143 @@
     }
 
 
-## WebHook Demo 说明
+## WebHookServer Demo 编译、安装
 本Demo提供实现支持WebHook服务的一种方式，基于Golang实现，使用MySQL存储收到的报警数据，Demo仅供参考。
+下面以UHost及UDB为例介绍如何使用该Demo。
 
-### 依赖
-WebHook Demo依赖3个第三方包，编译前需要使用go get 命令安装到本地
+### 依赖外部环境
+1. 根据UCloud相关操作说明创建系统为CentOS的UHost
+        
+        弹性IP
+        106.75.49.79 BGP 2 Mb
+        云硬盘
+        外网防火墙
+        Web服务器推荐(22，3389，80，443)
 
-1. github.com/gorilla/mux
-2. github.com/google/uuid
-3. github.com/go-sql-driver/mysql
+2. 根据UCloud相关操作说明创建UDB
+        
+        应用端口 3306
+        用户名称 root
+        配置文件 mysql5.6默认配置
+        属性 master
+        IP地址 10.10.99.159
+        安全策略 内网隔离
+
+
+### 准备工作
+#### UHost
+1. 安装Golang编译环境
+        
+        # yum install golang
+        # mkdir /usr/local/golang
+        # vim ~/.bashrc
+        # cat ~/.bashrc 
+        # .bashrc
+
+        # User specific aliases and functions
+
+        alias rm='rm -i'
+        alias cp='cp -i'
+        alias mv='mv -i'
+
+        # Source global definitions
+        if [ -f /etc/bashrc ]; then
+          . /etc/bashrc
+        fi
+        export HISTFILESIZE=100000
+        export HISTTIMEFORMAT="%Y-%m-%d %H:%M:%S "
+
+        export GOPATH=/usr/local/golang
+        export PATH=$PATH:$GOPATH/bin
+        # source ~/.bashrc
+        
+        # go env
+        GOARCH="amd64"
+        GOBIN=""
+        GOEXE=""
+        GOHOSTARCH="amd64"
+        GOHOSTOS="linux"
+        GOOS="linux"
+        GOPATH="/usr/local/golang"
+        GORACE=""
+        GOROOT="/usr/lib/golang"
+        GOTOOLDIR="/usr/lib/golang/pkg/tool/linux_amd64"
+        GO15VENDOREXPERIMENT=""
+        CC="gcc"
+        GOGCCFLAGS="-fPIC -m64 -pthread -fmessage-length=0"
+        CXX="g++"
+        CGO_ENABLED="1"
+
+2. 安装Golang第三方依赖包
+        
+        # yum install git
+        # go get github.com/gorilla/mux
+        # go get github.com/google/uuid
+        # go get github.com/go-sql-driver/mysql
+
+#### UDB
+1. 登录先前创建的UDB
+2. 创建Database
+        
+        CREATE DATABASE `monitor_warn`
+
+3. 创建存储报警数据的Table,以下仅参考
+        
+        CREATE TABLE IF NOT EXISTS `warn_message` (
+          `session_id` char(36) NOT NULL,
+          `region` varchar(20) NOT NULL,
+          `resource_type` varchar(45) NOT NULL,
+          `resource_id` varchar(45) NOT NULL,
+          `metric_name` varchar(50) NOT NULL,
+          `alarm_time` int(11) DEFAULT NULL,
+          `recovery_time` int(11) DEFAULT '0',
+          PRIMARY KEY (`session_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 ### 编译
-1. 在目录warn-webhook中创建名为src指向webhook-demo-go的软连接
-2. 将目录warn-webhook添加到GOPATH；
-3. 在目录warn-webhook中执行：*go build -a . *
+1. 上传webhookserver代码压缩包warn-webhook.zip，并解压
+        
+        # yum install unzip
+        # rz -bey
+        # unzip warn-webhook.zip
 
-### 执行
-1. 初始化MySQL数据库及表，表Schema可参考如下：
+2. 在目录warn-webhook中创建名为src指向webhook-demo-go的软连接
+        
+        # cd warn-webhook
+        # ln -s $PWD/webhook-demo-go src
+        
+2. 将目录warn-webhook添加到GOPATH
+        
+        # export GOPATH=$GOPATH:$PWD
 
-        CREATE TABLE `warn_message` (
-        `session_id` char(36) NOT NULL,
-        `region` varchar(20) NOT NULL,
-        `resource_type` varchar(45) NOT NULL,
-        `resource_id` varchar(45) NOT NULL,
-        `metric_name` varchar(50) NOT NULL,
-        `alarm_time` int(11) DEFAULT NULL,
-        `recovery_time` int(11) DEFAULT '0',
-        PRIMARY KEY (`session_id`)
-        ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+3. 在目录webhook-demo-go中编译
+        
+        # cd webhook-demo-go/
+        # go build -a .
+        # ls
+        doc  etc  restfulAPI  utils  webhook-demo-go  webhookserver.go
 
-2. 根据数据库表相关信息，修改webhook-demo-go/etc/conf.ini文件中相关内容
-3. 执行编译生成的可执行程序，默认加载etc/conf.ini文件，也可以指定其他位置配置文件
+### 配置
+1. 根据数据库表相关信息，修改webhook-demo-go/etc/conf.ini
+        
+        # vim etc/conf.ini 
+        # cat etc/conf.ini 
+        {
+          "mysql-user": "root",
+          "mysql-passwd": "passwd",
+          "mysql-db": "monitor_warn",
+          "mysql-host": "10.10.99.159",
+          "mysql-port": 3306
+        }
+
+2. 执行编译生成的可执行程序webhook-demo-go，默认加载etc/conf.ini文件，也可以指定其他位置配置文件
+        
+        # ./webhook-demo-go [-c etc/conf.ini]
+        2016/08/10 16:58:25 Welcome to ucloud monitor webhook demo ...
+        2016/08/10 16:58:25 Monitor webhook demo use 2 process cores
+        2016/08/10 16:58:25 Start monitor warn webhook server ...
+        2016/08/10 16:58:25 Webhook Server listen on : :80
+
 
 ### 资源路径及接口
 服务器启动时默认端口为80
