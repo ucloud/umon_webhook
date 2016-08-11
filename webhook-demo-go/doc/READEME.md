@@ -102,7 +102,7 @@
         # yum install golang
         # mkdir /usr/local/golang
         # vim ~/.bashrc
-        # cat ~/.bashrc 
+        # cat ~/.bashrc
         # .bashrc
 
         # User specific aliases and functions
@@ -191,8 +191,8 @@
 ### 配置
 1. 根据数据库表相关信息，修改webhook-demo-go/etc/conf.ini
         
-        # vim etc/conf.ini 
-        # cat etc/conf.ini 
+        # vim etc/conf.ini
+        # cat etc/conf.ini
         {
           "mysql-user": "root",
           "mysql-passwd": "passwd",
@@ -202,7 +202,7 @@
         }
 
 2. 执行编译生成的可执行程序webhook-demo-go，默认加载etc/conf.ini文件，也可以指定其他位置配置文件
-        
+
         # ./webhook-demo-go [-c etc/conf.ini]
         2016/08/10 16:58:25 Welcome to ucloud monitor webhook demo ...
         2016/08/10 16:58:25 Monitor webhook demo use 2 process cores
@@ -214,9 +214,22 @@
 服务器启动时默认端口为80
 
 1. / -> User Guide
+![UserGuid](img/userguide.png)
+
 2. /add -> 添加报警信息，即实际WebHook调用接口
 3. /get -> 获取当前已经添加的报警信息
+![WarnList](img/getwarnlistitems.png)
+
 
 ### 客户端说明
-仅测试添加报警信息，实际数据请以接口实际返回为准。
+仅测试添加报警信息，实际数据请以接口实际返回为准，具体操作如下：
+
+        # cd warn-webhook
+        # go build ./webhook-client.go
+        # ./webhook-client -u http://106.75.49.79/add    -> webhook post url
+        Post request for webhook:  0
+        {"SessionID":"07a89fb8-5ee0-11e6-b059-00ffbeabee13","Region":"cn-north-03","Reso
+        urceType":"uhost","ResourceId":"uhost-xxxx","MetricName":"MemUsage","AlarmTime":
+        1470822697,"RecoveryTime":0}
+        ......
 
