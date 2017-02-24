@@ -195,9 +195,9 @@
         # cat etc/conf.ini
         {
           "mysql-user": "root",
-          "mysql-passwd": "passwd",
+          "mysql-passwd": "password",
           "mysql-db": "monitor_warn",
-          "mysql-host": "10.10.99.159",
+          "mysql-host": "127.0.0.1",
           "mysql-port": 3306
         }
 
